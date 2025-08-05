@@ -25,7 +25,6 @@ export const authAPI = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Basic ' + btoa('user:55d89104225cb23c86606ea75232492d'),
       },
       body: JSON.stringify({ email, password }),
     });
@@ -44,7 +43,6 @@ export const authAPI = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Basic ' + btoa('user:55d89104225cb23c86606ea75232492d'),
       },
       body: JSON.stringify({ email, password }),
     });
@@ -68,7 +66,6 @@ export const authAPI = {
     const response = await fetch(`${API_URL}/api/dashboard`, {
       headers: {
         'Authorization': `Bearer ${token}`,
-        'X-Tunnel-Auth': 'Basic ' + btoa('user:55d89104225cb23c86606ea75232492d'),
       },
     });
     
