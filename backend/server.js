@@ -11,7 +11,11 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://auth-dashboard-app-i2oef3fz.devinapps.com'],
+  origin: [
+    'http://localhost:5173',
+    'https://auth-dashboard-app-i2oef3fz.devinapps.com',
+    'https://devin-auth-dimhk59qc-kuman-kira-ruris-projects.vercel.app'
+  ],
   credentials: true
 }));
 app.use(express.json());
