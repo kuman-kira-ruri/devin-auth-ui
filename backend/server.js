@@ -11,22 +11,12 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors({
-  origin: (origin, callback) => {
-    const allowed = [
-      'http://localhost:5173',
-      'https://auth-dashboard-app-i2oef3fz.devinapps.com',
-      'https://devin-auth-dimhk59qc-kuman-kira-ruris-projects.vercel.app'
-    ];
-    // vercel.appの全サブドメインを許可
-    if (
-      allowed.includes(origin) ||
-      (origin && origin.endsWith('.vercel.app'))
-    ) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: [
+    'http://localhost:5173',
+    'https://auth-dashboard-app-i2oef3fz.devinapps.com',
+    'https://devin-auth-dimhk59qc-kuman-kira-ruris-projects.vercel.app',
+    'https://devin-auth-ui-git-feature-auth-ui-kuman-kira-ruris-projects.vercel.app' // ← 追加
+  ],
   credentials: true
 }));
 app.use(express.json());
