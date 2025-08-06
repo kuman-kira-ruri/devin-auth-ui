@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('./database');
 const { authenticateToken } = require('./middleware/auth');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -14,6 +15,20 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+
+// ルートエンドポイントを追加
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Auth API Server is running',
+    status: 'OK',
+    endpoints: {
+      register: '/api/register',
+      login: '/api/login',
+      dashboard: '/api/dashboard',
+      health: '/api/health'
+    }
+  });
+});
 
 app.post('/api/register', async (req, res) => {
   try {
