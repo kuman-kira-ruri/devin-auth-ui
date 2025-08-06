@@ -16,6 +16,12 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// デバッグミドルウェアを追加
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
+
 // ルートエンドポイントを追加
 app.get('/', (req, res) => {
   res.json({ 
@@ -122,9 +128,34 @@ app.get('/api/dashboard', authenticateToken, (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
+  console.log('Health check endpoint called');
   res.json({ status: 'OK', message: 'Server is running' });
+});
+
+// 404ハンドラーを追加
+app.use('*', (req, res) => {
+  console.log(`404 - Route not found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({ 
+    error: 'Route not found',
+    method: req.method,
+    url: req.originalUrl,
+    availableEndpoints: {
+      root: '/',
+      health: '/api/health',
+      register: '/api/register',
+      login: '/api/login',
+      dashboard: '/api/dashboard'
+    }
+  });
 });
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
+  console.log(`Available endpoints:`);
+  console.log(`  - GET /`);
+  console.log(`  - GET /api/health`);
+  console.log(`  - POST /api/register`);
+  console.log(`  - POST /api/login`);
+  console.log(`  - GET /api/dashboard`);
 });
