@@ -9,13 +9,14 @@ A simple full-stack authentication application built with Node.js/Express backen
 - JWT-based authentication
 - Protected routes with middleware
 - React frontend with Tailwind CSS styling
-- SQLite database for data persistence
+- JSON file-based database for data persistence
+- Linux-compatible line endings (LF)
 
 ## Tech Stack
 
 ### Backend
 - Node.js + Express
-- SQLite database
+- JSON file database (no SQLite dependency)
 - bcrypt for password hashing
 - JWT for authentication
 - CORS enabled for frontend communication
@@ -33,12 +34,12 @@ A simple full-stack authentication application built with Node.js/Express backen
 auth-app/
 ├── backend/
 │   ├── server.js              # Main server file
-│   ├── database.js            # SQLite database setup
+│   ├── database.js            # JSON database setup
 │   ├── middleware/
 │   │   └── auth.js            # JWT authentication middleware
 │   ├── package.json
-│   ├── .env                   # Environment variables
-│   └── .env.example           # Environment variables template
+│   ├── env.example            # Environment variables template
+│   └── render.yaml            # Render deployment config
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
@@ -50,8 +51,15 @@ auth-app/
 │   ├── package.json
 │   ├── .env                   # Frontend environment variables
 │   └── .env.example           # Frontend environment template
+├── render.yaml                 # Render deployment configuration
+├── .gitattributes             # Line ending configuration
+├── .gitignore                 # Git ignore rules
 └── README.md
 ```
+
+## Line Endings Configuration
+
+This project is configured to use LF (Linux) line endings for compatibility with Linux-based hosting services like Render. The `.gitattributes` file ensures consistent line endings across different operating systems.
 
 ## Setup Instructions
 
@@ -73,7 +81,7 @@ auth-app/
 
 3. Copy the environment file and configure if needed:
    ```bash
-   cp .env.example .env
+   cp env.example .env
    ```
 
 4. Start the backend server:
@@ -106,6 +114,43 @@ auth-app/
    ```
 
    The frontend will run on `http://localhost:5173`
+
+## Deployment on Render
+
+### Backend Deployment
+
+1. **Renderアカウントを作成**: [Render.com](https://render.com) でアカウントを作成
+
+2. **新しいWebサービスを作成**:
+   - Renderダッシュボードで「New +」→「Web Service」を選択
+   - GitHubリポジトリを接続
+   - 以下の設定を使用：
+     - **Name**: `auth-backend`
+     - **Environment**: `Node`
+     - **Build Command**: `cd backend && npm install`
+     - **Start Command**: `cd backend && npm start`
+     - **Health Check Path**: `/api/health`
+
+3. **環境変数を設定**:
+   - `NODE_ENV`: `production`
+   - `JWT_SECRET`: ランダムな文字列（Renderで自動生成可能）
+
+4. **デプロイ**:
+   - 「Create Web Service」をクリック
+   - デプロイが完了するまで待機
+
+### デプロイ後の確認
+
+1. **ルートエンドポイント**: `https://your-app-name.onrender.com/`
+2. **ヘルスチェック**: `https://your-app-name.onrender.com/api/health`
+3. **API エンドポイント**: `https://your-app-name.onrender.com/api/register`
+
+### トラブルシューティング
+
+- **404エラー**: ルートエンドポイントが追加されていることを確認
+- **CORSエラー**: フロントエンドのURLをCORS設定に追加
+- **環境変数エラー**: Renderの環境変数設定を確認
+- **改行コードエラー**: `.gitattributes`ファイルでLF改行コードを強制
 
 ## Usage
 
@@ -160,18 +205,20 @@ VITE_API_URL=http://localhost:3001
 
 ## Database
 
-The application uses SQLite with a simple user schema:
+The application uses a JSON file-based database with a simple user schema:
 
-```sql
-CREATE TABLE users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  email TEXT UNIQUE NOT NULL,
-  password TEXT NOT NULL,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+```json
+[
+  {
+    "id": 1,
+    "email": "user@example.com",
+    "password": "hashed-password",
+    "created_at": "2024-01-01T00:00:00.000Z"
+  }
+]
 ```
 
-The database file (`database.sqlite`) will be created automatically in the backend directory when you first run the server.
+The database file (`users.json`) will be created automatically in the backend directory when you first run the server.
 
 ## Security Features
 
@@ -185,8 +232,9 @@ The database file (`database.sqlite`) will be created automatically in the backe
 
 - The backend runs on port 3001 to avoid conflicts with the frontend
 - Hot reloading is enabled for both frontend and backend during development
-- The SQLite database persists data between server restarts
+- The JSON database persists data between server restarts
 - JWT tokens are stored in localStorage on the frontend
+- All files use LF line endings for Linux compatibility
 
 ## Troubleshooting
 
@@ -196,6 +244,7 @@ The database file (`database.sqlite`) will be created automatically in the backe
 2. **CORS errors**: Ensure the backend is running and CORS is properly configured
 3. **Database errors**: Check that the backend has write permissions in its directory
 4. **JWT errors**: Verify that the JWT_SECRET is set in the backend .env file
+5. **Line ending errors**: Ensure `.gitattributes` is properly configured for LF endings
 
 ### Testing the API
 

@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const db = require('./database');
+const { findUserByEmail, createUser } = require('./database');
 const { authenticateToken } = require('./middleware/auth');
 const path = require('path');
 
@@ -18,7 +18,7 @@ app.use(express.json());
 
 // ルートエンドポイントを追加
 app.get('/', (req, res) => {
-  res.json({
+  res.json({ 
     message: 'Auth API Server is running',
     status: 'OK',
     endpoints: {
@@ -42,32 +42,34 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({ error: 'Password must be at least 6 characters long' });
     }
 
+    // 既存のユーザーをチェック
+    const existingUser = findUserByEmail(email);
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    db.run(
-      'INSERT INTO users (email, password) VALUES (?, ?)',
-      [email, hashedPassword],
-      function(err) {
-        if (err) {
-          if (err.message.includes('UNIQUE constraint failed')) {
-            return res.status(400).json({ error: 'Email already exists' });
-          }
-          return res.status(500).json({ error: 'Failed to create user' });
-        }
+    try {
+      const newUser = createUser({
+        email,
+        password: hashedPassword
+      });
 
-        const token = jwt.sign(
-          { userId: this.lastID, email },
-          process.env.JWT_SECRET,
-          { expiresIn: '24h' }
-        );
+      const token = jwt.sign(
+        { userId: newUser.id, email },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
 
-        res.status(201).json({
-          message: 'User created successfully',
-          token,
-          user: { id: this.lastID, email }
-        });
-      }
-    );
+      res.status(201).json({
+        message: 'User created successfully',
+        token,
+        user: { id: newUser.id, email: newUser.email }
+      });
+    } catch (err) {
+      return res.status(500).json({ error: 'Failed to create user' });
+    }
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }
@@ -81,36 +83,32 @@ app.post('/api/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    db.get(
-      'SELECT * FROM users WHERE email = ?',
-      [email],
-      async (err, user) => {
-        if (err) {
-          return res.status(500).json({ error: 'Server error' });
-        }
+    try {
+      const user = findUserByEmail(email);
 
-        if (!user) {
-          return res.status(401).json({ error: 'Invalid credentials' });
-        }
-
-        const isValidPassword = await bcrypt.compare(password, user.password);
-        if (!isValidPassword) {
-          return res.status(401).json({ error: 'Invalid credentials' });
-        }
-
-        const token = jwt.sign(
-          { userId: user.id, email: user.email },
-          process.env.JWT_SECRET,
-          { expiresIn: '24h' }
-        );
-
-        res.json({
-          message: 'Login successful',
-          token,
-          user: { id: user.id, email: user.email }
-        });
+      if (!user) {
+        return res.status(401).json({ error: 'Invalid credentials' });
       }
-    );
+
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+
+      const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      res.json({
+        message: 'Login successful',
+        token,
+        user: { id: user.id, email: user.email }
+      });
+    } catch (err) {
+      return res.status(500).json({ error: 'Server error' });
+    }
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }
