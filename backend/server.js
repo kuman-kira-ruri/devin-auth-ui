@@ -136,10 +136,10 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });
 });
 
-// 404ハンドラーを追加
-app.use('*', (req, res) => {
+// 404ハンドラー
+app.use((req, res) => {
   console.log(`404 - Route not found: ${req.method} ${req.originalUrl}`);
-  res.status(404).json({ 
+  res.status(404).json({
     error: 'Route not found',
     method: req.method,
     url: req.originalUrl,
